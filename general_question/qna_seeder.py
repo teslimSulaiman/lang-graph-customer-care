@@ -25,7 +25,7 @@ class QnaSeeder:
         # Convert to Documents
         documents = [
             Document(
-                page_content=item["answer"],
+                page_content=item["question"] +"  " + item["answer"],
                 metadata={
                     "question": item["question"],
                     "lang": "ar"

@@ -2,7 +2,7 @@ from langchain_openai import ChatOpenAI
 import os
 from langchain_openai import OpenAIEmbeddings
 
-os.environ["OPENAI_API_KEY"] = "voc-12538280931536631786854687000c89885d6.41849077"
+os.environ["OPENAI_API_KEY"] = "voc-xxx"
 os.environ["BASE_URL"] = "https://openai.vocareum.com/v1"
 llm = ChatOpenAI(model="gpt-4o-mini",
                  temperature=0,

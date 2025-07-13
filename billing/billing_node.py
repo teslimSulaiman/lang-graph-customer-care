@@ -19,17 +19,19 @@ def execute_sql(query: str) -> List[tuple]:
     with engine.begin() as connection:
         return connection.execute(text(query)).fetchall()
 
-def billing_node(state: State) -> State:
-    input_query = state.input
+
+def build_schema_description() -> str:
     tables = list_tables()
     schemas = {t: get_table_schema(t) for t in tables}
-    schema_desc = "\n".join(
+    return "\n".join(
         f"Table {table}:\n" + "\n".join(
             f" - {col['name']} ({col['type']})" for col in cols
         )
         for table, cols in schemas.items()
     )
 
+
+def generate_sql(schema_desc: str, question: str) -> str:
     prompt = f"""
 You are an expert SQL assistant. Given the database schema below, write a valid SQL query to answer the user's question.
 
@@ -37,27 +39,32 @@ Schema:
 {schema_desc}
 
 User question:
-{input_query}
+{question}
 
 Only return the SQL query without explanation.
 """
+    return llm.invoke(prompt).content.strip().strip("```sql").strip("```")
 
-    sql_query = llm.invoke(prompt).content.strip().strip("```sql").strip("```")
 
-    # Step 2: Execute the query
+def generate_human_answer(question: str, sql_query: str, result: list) -> str:
+    prompt = f"""
+Question: {question}
+SQL Query: {sql_query}
+Result: {result}
+
+Based on the result, give a short, human-readable answer to the question.
+"""
+    return llm.invoke(prompt).content.strip()
+
+
+def billing_node(state: State) -> State:
+    input_query = state.input
+    schema_desc = build_schema_description()
+
+    sql_query = generate_sql(schema_desc, input_query)
     result = execute_sql(sql_query)
+    final_answer = generate_human_answer(input_query, sql_query, result)
 
-    # Step 3: Use LLM to turn result into human-readable answer
-    post_prompt = f"""
-        Question: {input_query}
-        SQL Query: {sql_query}
-        Result: {result}
-
-        Based on the result, give a short, human-readable answer to the question.
-        """
-
-    final_answer = llm.invoke(post_prompt).content.strip()
-    #return {"sql_query": sql_query, "input": input_query, "result": final_answer}
     return state.model_copy(update={
         "sql_query": sql_query,
         "answer": final_answer,

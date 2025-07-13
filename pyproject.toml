@@ -1,0 +1,13 @@
+[project]
+name = "pythonproject"
+version = "0.1.0"
+description = "Add your description here"
+requires-python = ">=3.11"
+dependencies = [
+    "any>=0.0.2",
+    "dict>=2018.11.19",
+    "langchain>=0.3.26",
+    "langgraph>=0.5.2",
+    "route-node>=0.0.1",
+    "streamlit>=1.46.1",
+]
